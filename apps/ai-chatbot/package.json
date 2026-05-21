@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^2.0.35",
+    "@ant-design/icons": "^6.2.3",
+    "@ant-design/x-markdown": "^2.7.0",
     "ai": "^6.0.185",
     "next": "16.2.6",
     "react": "19.2.4",
@@ -17,10 +19,12 @@
   },
   "devDependencies": {
     "@ai-sdk/react": "^3.0.187",
+    "@ant-design/x": "^2.7.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "antd": "^6.4.3",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",

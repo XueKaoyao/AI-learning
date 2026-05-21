@@ -13,6 +13,7 @@ export async function POST(request: Request) {
       model: deepseek('deepseek-chat'),
       messages: await convertToModelMessages(messages),
       temperature: 0.8,
+      maxRetries: 1,
     });
 
     return result.toUIMessageStreamResponse();
