@@ -1,5 +1,7 @@
 import { JSX } from 'react';
 import './globals.css';
+import '@ant-design/x-markdown/themes/light.css';
+import '@ant-design/x-markdown/themes/dark.css';
 
 export default function RootLayout({
   children,

@@ -1,101 +1,60 @@
 'use client';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useChat } from '@ai-sdk/react';
-import InputTab from './components/InputTab';
+import dynamic from 'next/dynamic';
 import ErrorCard from './components/ErrorCard';
 import ChatBubble from './components/ChatBubble';
 import WelcomeCard from './components/WelcomeCard';
-import { Bubble } from '@ant-design/x';
-import { Avatar } from 'antd';
-import { OpenAIOutlined } from '@ant-design/icons';
+import { Switch } from 'antd';
+import { MoonOutlined, SunOutlined } from '@ant-design/icons';
+import { useThemeStore } from './store/useThemeStore';
+
+const InputTab = dynamic(() => import('./components/InputTab'), { ssr: false });
 
 export default function Home() {
-  const [input, setInput] = useState('');
-  const [showScrollBtn, setShowScrollBtn] = useState(false);
-  const listRef = useRef<HTMLDivElement>(null);
+  const { theme, setTheme } = useThemeStore();
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const onError = useCallback((err: Error) => {
+    console.error('Chat error:', err);
+  }, []);
+
   const { messages, sendMessage, error, status, stop } = useChat({
-    onError: (err) => console.error('Chat error:', err),
+    onError,
   });
-  const isLoading = status === 'submitted' || status === 'streaming';
-
-  const isNearBottom = useCallback(() => {
-    const el = listRef.current;
-    if (!el) return true;
-    return el.scrollHeight - el.scrollTop - el.clientHeight < 120;
-  }, []);
-
-  const scrollToBottom = useCallback((smooth = true) => {
-    listRef.current?.scrollTo({
-      top: listRef.current.scrollHeight,
-      behavior: smooth ? 'smooth' : 'instant',
-    });
-  }, []);
-
-  useEffect(() => {
-    if (isNearBottom()) {
-      scrollToBottom();
-    }
-  }, [messages, isNearBottom, scrollToBottom]);
-
-  useEffect(() => {
-    const el = listRef.current;
-    if (!el) return;
-    const handleScroll = () => setShowScrollBtn(!isNearBottom());
-    el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => el.removeEventListener('scroll', handleScroll);
-  }, [isNearBottom]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const text = input.trim();
-    if (!text || isLoading) return;
-    sendMessage({ text });
-    setInput('');
-  };
 
   return (
-    <div className="relative flex h-full flex-1 flex-col bg-zinc-50 dark:bg-zinc-900">
-      <header className="border-b border-zinc-200 px-4 py-3 text-center font-semibold dark:border-zinc-800 dark:text-zinc-100">
-        AI Chatbot
+    <div className="relative flex h-full flex-1 flex-col">
+      <header className="flex items-center border-b border-secondary px-4 py-5 bg-primary">
+        <span className="font-semibold text-lg mx-auto text-[var(--color-font)]">
+          AI Chatbot
+        </span>
+        <Switch
+          checked={theme === 'dark'}
+          onChange={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+          checkedChildren={<MoonOutlined />}
+          unCheckedChildren={<SunOutlined />}
+        />
       </header>
 
-      <div ref={listRef} className="flex-1 overflow-y-auto px-5">
+      <div className="flex-1 min-h-0 px-5 w-full bg-major flex flex-col">
         {error && <ErrorCard message={error.message} />}
-        {messages.length === 0 && !error && <WelcomeCard />}
-        {messages.map((msg) => (
-          <ChatBubble key={msg.id} msg={msg} />
-        ))}
-        {status === 'submitted' &&
-          messages.length > 0 &&
-          messages[messages.length - 1]?.role !== 'assistant' && (
-            <div className="my-5 mx-auto w-2/3">
-              <Bubble
-                content={'思考中...'}
-                shape="corner"
-                typing={true}
-                avatar={<Avatar icon={<OpenAIOutlined />} />}
-              />
-            </div>
-          )}
+        {messages.length === 0 && !error && (
+          <div className="my-5">
+            <WelcomeCard />
+          </div>
+        )}
+        <div className="w-2/3 mx-auto h-full">
+          <ChatBubble messages={messages} status={status} />
+        </div>
       </div>
 
-      {showScrollBtn && (
-        <button
-          onClick={() => scrollToBottom()}
-          className="absolute bottom-20 left-1/2 z-10 -translate-x-1/2 rounded-full bg-blue-600 px-4 py-1.5 text-xs text-white shadow-lg transition-opacity hover:bg-blue-700"
-        >
-          回到底部
-        </button>
-      )}
-
-      <InputTab
-        handleSubmit={handleSubmit}
-        input={input}
-        setInput={setInput}
-        isLoading={isLoading}
-        status={status}
-        stop={stop}
-      />
+      <div className="w-full bg-major py-5">
+        <InputTab sendMessage={sendMessage} stop={stop} status={status} />
+      </div>
     </div>
   );
 }

@@ -6,10 +6,41 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-major: var(--color-major);
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-third: var(--color-third);
+  --color-default: var(--color-default);
+  --color-font: var(--color-font);
+}
+
+[data-theme="light"] {
+  --color-major: #FFFFFF;
+  --color-primary: #F5F5F5;
+  --color-secondary: #E0E0E0;
+  --color-third: #BDBDBD;
+  --color-default: #f2f2f2;
+  --color-font: #121212;
+  --color-placeholder: #9e9e9e;
+}
+
+[data-theme="dark"] {
+  --color-major: #121212;
+  --color-primary: #1E1E1E;
+  --color-secondary: #2C2C2C;
+  --color-third: #3D3D3D;
+  --color-default: #5a5a5a79;
+  --color-font: #FFFFFF;
+  --color-placeholder: #FFFFFF;
+}
+
+.sender-input::placeholder {
+  color: var(--color-placeholder);
+  opacity: 1;
+}
+
+.prompt-desciption .ant-prompts-desc {
+  color: var(--color-font) !important;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +54,8 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.scrollbar-hover:hover {
+  scrollbar-width: thin;
 }

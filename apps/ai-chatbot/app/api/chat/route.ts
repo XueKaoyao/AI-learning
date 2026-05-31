@@ -7,12 +7,20 @@ const deepseek = createDeepSeek({
 
 export async function POST(request: Request) {
   try {
-    const { messages } = await request.json();
-
+    const { messages, temperature, systemPrompt } = await request.json();
+    console.log(
+      'Received messages:',
+      messages,
+      'Temperature:',
+      temperature,
+      'System Prompt:',
+      systemPrompt,
+    );
     const result = await streamText({
       model: deepseek('deepseek-chat'),
       messages: await convertToModelMessages(messages),
-      temperature: 0.8,
+      temperature,
+      ...(systemPrompt ? { system: systemPrompt } : {}),
       maxRetries: 1,
     });
 
