@@ -55,45 +55,45 @@ export default function ChatBubble({ messages, status, regenerate }: Props) {
     [className],
   );
 
-  const actionItems = (content: string, showRegenerate: boolean) => {
-    const items = [
-      {
-        key: 'copy',
-        label: 'copy',
-        actionRender: () => {
-          return (
-            <Actions.Copy
-              text={content}
-              styles={{ root: { color: 'var(--color-font)' } }}
-            />
-          );
-        },
-      },
-    ];
-
-    if (showRegenerate && isIdle) {
-      items.push({
-        key: 'regenerate',
-        label: 'regenerate',
-        actionRender: () => {
-          return (
-            <ReloadOutlined
-              style={{ color: 'var(--color-font)', cursor: 'pointer' }}
-              onClick={() => {
-                regenerate().catch((err) => {
-                  console.error('Regenerate failed:', err);
-                });
-              }}
-            />
-          );
-        },
-      });
-    }
-
-    return items;
-  };
-
   const items: BubbleItemType[] = useMemo(() => {
+    const actionItems = (content: string, showRegenerate: boolean) => {
+      const items = [
+        {
+          key: 'copy',
+          label: 'copy',
+          actionRender: () => {
+            return (
+              <Actions.Copy
+                text={content}
+                styles={{ root: { color: 'var(--color-font)' } }}
+              />
+            );
+          },
+        },
+      ];
+
+      if (showRegenerate && isIdle) {
+        items.push({
+          key: 'regenerate',
+          label: 'regenerate',
+          actionRender: () => {
+            return (
+              <ReloadOutlined
+                style={{ color: 'var(--color-font)', cursor: 'pointer' }}
+                onClick={() => {
+                  regenerate().catch((err) => {
+                    console.error('Regenerate failed:', err);
+                  });
+                }}
+              />
+            );
+          },
+        });
+      }
+
+      return items;
+    };
+
     const lastAssistantIndex = messages.reduce(
       (lastIdx, msg, idx) => (msg.role === 'assistant' ? idx : lastIdx),
       -1,
@@ -167,7 +167,7 @@ export default function ChatBubble({ messages, status, regenerate }: Props) {
     }
 
     return bubbleItems;
-  }, [messages, status, renderMarkdown]);
+  }, [messages, status, renderMarkdown, isIdle, regenerate]);
 
   return (
     <Bubble.List
