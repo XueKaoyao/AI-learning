@@ -33,7 +33,7 @@ export default function ChatBubble({ messages, status, regenerate }: Props) {
   }, [status]);
 
   const renderMarkdown: BubbleProps['contentRender'] = useCallback(
-    (content) => {
+    (content: string) => {
       const isStreaming = statusRef.current === ChatStatus.Streaming;
 
       return (
