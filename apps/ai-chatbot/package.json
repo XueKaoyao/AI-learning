@@ -12,11 +12,13 @@
     "@ai-sdk/deepseek": "^2.0.35",
     "@ant-design/icons": "^6.2.3",
     "@ant-design/x-markdown": "^2.7.0",
+    "@myworkspace/fetch": "workspace:*",
     "ai": "^6.0.185",
     "lodash": "^4.18.1",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "swr": "^2.4.1",
     "zustand": "^5.0.13"
   },
   "devDependencies": {

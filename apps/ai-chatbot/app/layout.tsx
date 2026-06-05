@@ -9,7 +9,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }): JSX.Element {
   return (
-    <html lang="zh-CN" className="h-full">
+    <html lang="zh-CN" className="h-full" suppressHydrationWarning>
       <body className="h-full">{children}</body>
     </html>
   );

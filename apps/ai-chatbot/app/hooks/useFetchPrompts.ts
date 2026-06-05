@@ -1,19 +1,54 @@
 import { useEffect, useState } from 'react';
 import { SystemPromptOption } from '../types/systemPromptType';
+import { apiFetch, FetchError } from '@myworkspace/fetch';
 
-export default function useFetchPrompts() {
+interface FetchState<T> {
+  results: T;
+  loading: boolean;
+  error: FetchError | null;
+}
+
+export default function useFetchPrompts(): FetchState<SystemPromptOption[]> {
   const [results, setResults] = useState<SystemPromptOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<FetchError | null>(null);
+
   useEffect(() => {
-    const fetchData = async () => {
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      setError(null);
+
       try {
-        const response = await fetch('/api/systemprompt');
-        const data = await response.json();
-        setResults(data);
-      } catch (error) {
-        console.error('Error fetching system prompts:', error);
+        const data = await apiFetch<SystemPromptOption[]>('/api/systemprompt', {
+          cacheConfig: { revalidate: true },
+        });
+        if (!cancelled) setResults(data);
+      } catch (err: unknown) {
+        if (cancelled) return;
+
+        const fetchError =
+          err instanceof FetchError
+            ? err
+            : new FetchError(String(err), {
+                status: 0,
+                statusText: 'Unknown',
+                url: '/api/systemprompt',
+                category: 'network',
+              });
+
+        console.error(`[${fetchError.category}] ${fetchError.message}`);
+        setError(fetchError);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
+    })();
+
+    return () => {
+      cancelled = true;
     };
-    fetchData();
   }, []);
-  return { results };
+
+  return { results, loading, error };
 }
