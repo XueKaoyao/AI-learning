@@ -8,6 +8,10 @@ import WelcomeCard from './components/WelcomeCard';
 import { Switch } from 'antd';
 import { MoonOutlined, SunOutlined } from '@ant-design/icons';
 import { useThemeStore } from './store/useThemeStore';
+import {
+  setMessageHistory,
+  loadMessageHistory,
+} from './store/useMessageHistory';
 
 const InputTab = dynamic(() => import('./components/InputTab'), { ssr: false });
 
@@ -19,14 +23,38 @@ export default function Home() {
   }, [theme]);
 
   const [dismissedError, setDismissedError] = useState<string | null>(null);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   const onError = useCallback((err: Error) => {
     console.error('Chat error:', err);
   }, []);
 
-  const { messages, sendMessage, error, status, stop, regenerate } = useChat({
+  const {
+    messages,
+    setMessages,
+    sendMessage,
+    error,
+    status,
+    stop,
+    regenerate,
+  } = useChat({
     onError,
+    onFinish: async (message) => {
+      const { messages } = message;
+      const newMessages = [...messages.slice(-2)];
+      await setMessageHistory(newMessages);
+    },
   });
+
+  useEffect(() => {
+    loadMessageHistory().then((savedHistory) => {
+      if (savedHistory.length > 0) {
+        setMessages(savedHistory);
+      }
+      setHistoryLoaded(true);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const visibleError = error && error.message !== dismissedError ? error : null;
 
@@ -52,7 +80,7 @@ export default function Home() {
             onDismiss={() => setDismissedError(visibleError.message)}
           />
         )}
-        {messages.length === 0 && !visibleError && (
+        {historyLoaded && messages.length === 0 && !visibleError && (
           <div className="my-5">
             <WelcomeCard />
           </div>

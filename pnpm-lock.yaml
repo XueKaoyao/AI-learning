@@ -23,6 +23,9 @@ importers:
       eslint-plugin-react:
         specifier: ^7.37.5
         version: 7.37.5(eslint@9.39.4(jiti@2.7.0))
+      eslint-plugin-react-hooks:
+        specifier: ^7.1.1
+        version: 7.1.1(eslint@9.39.4(jiti@2.7.0))
       globals:
         specifier: ^17.6.0
         version: 17.6.0
@@ -56,6 +59,9 @@ importers:
       '@myworkspace/fetch':
         specifier: workspace:*
         version: link:../../packages/utils/fetch
+      '@myworkspace/indexedDB':
+        specifier: workspace:*
+        version: link:../../packages/utils/indexedDB
       ai:
         specifier: ^6.0.185
         version: 6.0.185(zod@4.4.3)
@@ -105,6 +111,9 @@ importers:
       eslint-config-next:
         specifier: 16.2.6
         version: 16.2.6(@typescript-eslint/parser@8.59.4(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3))(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3)
+      eslint-plugin-react-hooks:
+        specifier: ^7.1.1
+        version: 7.1.1(eslint@9.39.4(jiti@2.7.0))
       tailwindcss:
         specifier: ^4
         version: 4.3.0
@@ -113,6 +122,8 @@ importers:
         version: 5.9.3
 
   packages/utils/fetch: {}
+
+  packages/utils/indexedDB: {}
 
 packages:
 
