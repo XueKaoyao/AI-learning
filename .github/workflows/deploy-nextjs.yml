@@ -2,7 +2,7 @@ name: Deploy ai-chatbot App to GitHub Pages
 
 # 全局权限设置
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
