@@ -1,13 +1,13 @@
 'use client';
+import { useState } from 'react';
 import { SettingOutlined } from '@ant-design/icons';
 import { Sender } from '@ant-design/x';
 import { Button, Modal, Tooltip, Slider } from 'antd';
-import { useState } from 'react';
 import SystemPromptItems from './SystemPromptItems';
-import { useSystemPrompt } from '../store/useSystemprompt';
+import { useSystemOption } from '../store/useSystemOption';
 import { SystemPromptOption } from '../types/systemPromptType';
 import { useThemeStore } from '../store/useThemeStore';
-import { useChatStore } from '../store/useChatInput';
+import { useChatInput } from '../store/useChatInput';
 
 export default function InputTab({
   sendMessage,
@@ -21,10 +21,10 @@ export default function InputTab({
   stop: () => void;
   status: string;
 }) {
-  const [temperature, setTemperature] = useState<number>(0.8);
   const [isSystemPromptOpen, setIsSystemPromptOpen] = useState<boolean>(false);
-  const { input, setInput } = useChatStore();
-  const { systemPrompt, setSystemPrompt } = useSystemPrompt();
+  const { input, setInput, submitInput } = useChatInput();
+  const { temperature, setTemperature, systemPrompt, setSystemPrompt } =
+    useSystemOption();
   const { theme } = useThemeStore();
   const [pendingSystemPrompt, setPendingSystemPrompt] =
     useState<SystemPromptOption>(systemPrompt);
@@ -38,7 +38,7 @@ export default function InputTab({
       { text },
       { body: { temperature, systemPrompt: systemPrompt.content } },
     );
-    setInput('');
+    submitInput();
   };
 
   const handleCancel = () => {
@@ -49,7 +49,7 @@ export default function InputTab({
     setTemperature(value);
   };
   return (
-    <div className="w-2/3 m-auto">
+    <div className="w-full m-auto">
       <Sender
         onSubmit={(v) => handleSubmit(v)}
         value={input}

@@ -14,6 +14,7 @@
     "@ant-design/icons": "^6.2.3",
     "@ant-design/x-markdown": "^2.7.0",
     "@myworkspace/fetch": "workspace:*",
+    "@myworkspace/indexedDB": "workspace:*",
     "ai": "^6.0.185",
     "lodash": "^4.18.1",
     "next": "16.2.6",
@@ -32,6 +33,7 @@
     "antd": "^6.4.3",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
