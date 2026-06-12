@@ -1,6 +1,6 @@
 import { Card, Radio } from 'antd';
 import { useState, useRef, useEffect } from 'react';
-import { useSystemPrompt } from '../store/useSystemprompt';
+import { useSystemOption } from '../store/useSystemOption';
 import { SystemPromptOption } from '../types/systemPromptType';
 import useFetchPrompts from '../hooks/useFetchPrompts';
 import throttle from 'lodash/throttle';
@@ -10,7 +10,7 @@ export default function SystemPromptItems({
 }: {
   setPendingSystemPrompt: (prompt: SystemPromptOption) => void;
 }) {
-  const { systemPrompt } = useSystemPrompt();
+  const { systemPrompt } = useSystemOption();
   const { results } = useFetchPrompts();
   const [selectedValue, setSelectedValue] = useState<string>(systemPrompt.id);
   const throttledSelectRef = useRef<ReturnType<typeof throttle> | null>(null);

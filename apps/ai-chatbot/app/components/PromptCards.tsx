@@ -3,9 +3,9 @@ import type { PromptsProps } from '@ant-design/x';
 import { Prompts } from '@ant-design/x';
 import { Space, Image } from 'antd';
 import { useThemeStore } from '../store/useThemeStore';
-import { useChatStore } from '../store/useChatInput';
+import { useChatInput } from '../store/useChatInput';
 import useFetchPrompts from '../hooks/useFetchPrompts';
-import { useSystemPrompt } from '../store/useSystemprompt';
+import { useSystemOption } from '../store/useSystemOption';
 
 const renderTitle = (url: string, title: string, width: number) => (
   <Space align="start">
@@ -135,9 +135,9 @@ const items: PromptsProps['items'] = [
 
 export default function PromptCards() {
   const { theme } = useThemeStore();
-  const { setInput } = useChatStore();
+  const { setInput } = useChatInput();
   const { results } = useFetchPrompts();
-  const { setSystemPrompt } = useSystemPrompt();
+  const { setSystemPrompt } = useSystemOption();
 
   return (
     <div>

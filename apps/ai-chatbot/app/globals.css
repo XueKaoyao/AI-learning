@@ -59,6 +59,27 @@ body {
   scrollbar-width: thin;
 }
 
+/* ========== Sider Conversations ========== */
+.sider-conversations .ant-conversations-label {
+  color: var(--color-font) !important;
+}
+
+.sider-conversations .ant-conversations-menu-icon {
+  color: var(--color-font) !important;
+}
+
+.sider-conversations .ant-conversations-item-active   {
+  background-color: var(--color-secondary) !important;
+}
+
+.sider-conversations .ant-conversations-item:hover{
+  background-color: var(--color-secondary) !important;
+}
+
+.sider-conversations  .ant-conversations-creation:hover{
+  background-color: var(--color-secondary) !important;
+}
+
 /* ========== Animations ========== */
 @keyframes fade-in {
   from {

@@ -9,7 +9,7 @@ interface Props {
 
 export default function ErrorCard({ message, onRetry, onDismiss }: Props) {
   return (
-    <div className="w-2/3 mx-auto animate-fade-in my-5">
+    <div className="w-full mx-auto animate-fade-in my-5">
       <div className="flex items-start gap-3 rounded-xl border border-red-200/60 bg-red-50/90 px-5 py-4 shadow-sm backdrop-blur-sm dark:border-red-800/40 dark:bg-red-950/60">
         {/* Icon */}
         <div className="flex-shrink-0 mt-0.5">
