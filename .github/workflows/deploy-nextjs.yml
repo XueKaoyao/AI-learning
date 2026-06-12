@@ -59,7 +59,7 @@ jobs:
       # 7. 构建并导出 Next.js 应用到 out 目录
       - name: Build and Export Next.js app
         run: |
-          cd apps/web                    # 进入你的 Next.js 应用目录
+          cd apps/ai-chatbot                    # 进入你的 Next.js 应用目录
           pnpm run build                 # 运行构建
         env:
           NODE_ENV: production
@@ -71,7 +71,7 @@ jobs:
           # GITHUB_TOKEN 由 GitHub 自动提供，无需设置 secret
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # 指定要部署的文件夹（Next.js 静态导出默认输出到 out）
-          publish_dir: ./apps/web/out
+          publish_dir: ./apps/ai-chatbot/out
           # 目标分支（GitHub Pages 默认使用 gh-pages 分支）
           publish_branch: gh-pages
           # 可选的提交信息
