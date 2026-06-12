@@ -1,49 +1,50 @@
-name: Deploy Next.js App to GitHub Pages
+name: Deploy ai-chatbot App to GitHub Pages
 
-# 触发条件
-on:
-  push:
-    branches: [main]
-    paths:
-      - 'apps/ai-chatbot/**' # 你的 Next.js 应用路径
-      - 'packages/**' # 共享包变更
-      - '.github/workflows/deploy-nextjs.yml'
-  workflow_dispatch: # 支持手动触发
-
-# 设置 GITHUB_TOKEN 的权限（GitHub Pages 部署需要）
+# 全局权限设置
 permissions:
   contents: read
   pages: write
   id-token: write
 
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/ai-chatbot/**'
+      - 'packages/**'
+      - '.github/workflows/deploy-nextjs.yml'
+  workflow_dispatch:
+
+# 确保只有一个部署任务同时运行
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
-      # 1. 检出代码
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # 2. 安装 Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # 3. 安装 pnpm（根据你的包管理器调整）
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           run_install: false
 
-      # 4. 获取 pnpm 缓存路径
       - name: Get pnpm store directory
         id: pnpm-cache
         run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
 
-      # 5. 缓存依赖
       - name: Cache pnpm dependencies
         uses: actions/cache@v4
         with:
@@ -52,29 +53,33 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      # 6. 安装依赖
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # 7. 构建并导出 Next.js 应用到 out 目录
       - name: Build and Export Next.js app
         run: |
-          cd apps/ai-chatbot                    # 进入你的 Next.js 应用目录
-          pnpm run build                 # 运行构建
-        env:
-          NODE_ENV: production
+          cd apps/ai-chatbot
+          pnpm run build
 
-      # 8. 部署到 GitHub Pages
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          # GITHUB_TOKEN 由 GitHub 自动提供，无需设置 secret
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          # 指定要部署的文件夹（Next.js 静态导出默认输出到 out）
-          publish_dir: ./apps/ai-chatbot/out
-          # 目标分支（GitHub Pages 默认使用 gh-pages 分支）
-          publish_branch: gh-pages
-          # 可选的提交信息
-          commit_message: 'deploy: ai-chatbot to GitHub Pages'
-          # 如果保留历史记录（默认 true）
-          keep_files: false
+          # 上传构建产物目录
+          path: './apps/ai-chatbot/out'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
