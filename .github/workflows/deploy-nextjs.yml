@@ -1,10 +1,8 @@
-name: Deploy ai-chatbot App to GitHub Pages
+name: Deploy ai-chatbot to Vercel
 
-# 全局权限设置
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 on:
   push:
@@ -13,23 +11,26 @@ on:
       - 'apps/ai-chatbot/**'
       - 'packages/**'
       - '.github/workflows/deploy-nextjs.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/ai-chatbot/**'
+      - 'packages/**'
+      - '.github/workflows/deploy-nextjs.yml'
   workflow_dispatch:
 
-# 确保只有一个部署任务同时运行
 concurrency:
-  group: 'pages'
-  cancel-in-progress: false
+  group: 'vercel-${{ github.ref }}'
+  cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -56,30 +57,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build and Export Next.js app
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy to Vercel (preview)
+        if: github.ref != 'refs/heads/main'
+        working-directory: apps/ai-chatbot
         run: |
-          cd apps/ai-chatbot
-          pnpm run build
+          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # 上传构建产物目录
-          path: './apps/ai-chatbot/out'
-
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      pages: write
-      id-token: write
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Deploy to Vercel (production)
+        if: github.ref == 'refs/heads/main'
+        working-directory: apps/ai-chatbot
+        run: |
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
