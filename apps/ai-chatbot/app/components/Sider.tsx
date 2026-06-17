@@ -19,7 +19,10 @@ export default function Sider() {
   const handleSaveRename = (id: number) => {
     const target = sessionList.find((v) => v.id === id);
     if (!target) return;
-    const trimmed = editTitle.trim();
+    const trimmed =
+      editTitle.trim().length > 20
+        ? `${editTitle.trim().substring(0, 20)}...`
+        : editTitle.trim();
     // 空标题不允许保存，直接取消编辑
     if (!trimmed) {
       setEditingId(null);
@@ -27,7 +30,7 @@ export default function Sider() {
     }
     const newList = sessionList.filter((v) => v.id !== id);
     if (target.title !== trimmed) {
-      setSessionList([{ id, title: trimmed }, ...newList]);
+      setSessionList([{ ...target, title: trimmed }, ...newList]);
     }
     setEditingId(null);
   };

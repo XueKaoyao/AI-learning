@@ -5,6 +5,15 @@ export interface dbOptions {
   storeKey: string;
 }
 
+export function opts(options: dbOptions) {
+  return {
+    dbName: options.dbName,
+    dbVersion: options.dbVersion,
+    storeName: options.storeName,
+    storeKey: options.storeKey,
+  };
+}
+
 function openDB(options: dbOptions): Promise<IDBDatabase> {
   const { dbName, dbVersion, storeName } = options;
   return new Promise((resolve, reject) => {

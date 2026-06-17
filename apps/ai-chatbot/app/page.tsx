@@ -6,8 +6,13 @@ import dynamic from 'next/dynamic';
 import ErrorCard from './components/ErrorCard';
 import ChatBubble from './components/ChatBubble';
 import WelcomeCard from './components/WelcomeCard';
-import { Switch } from 'antd';
-import { MoonOutlined, SunOutlined } from '@ant-design/icons';
+import { Button, Switch, Upload } from 'antd';
+import {
+  ExportOutlined,
+  ImportOutlined,
+  MoonOutlined,
+  SunOutlined,
+} from '@ant-design/icons';
 import { useThemeStore } from './store/useThemeStore';
 import {
   setMessageHistory,
@@ -16,6 +21,8 @@ import {
 import Sider from './components/Sider';
 import { useSessionList } from './store/useSessionList';
 import { useChatInput } from './store/useChatInput';
+import useHandleFiles from './hooks/useHandleFiles';
+import { useSystemOption } from './store/useSystemOption';
 
 const InputTab = dynamic(() => import('./components/InputTab'), { ssr: false });
 
@@ -29,6 +36,8 @@ export default function Home() {
     hydrateFromStorage,
   } = useSessionList();
   const { lastSubmittedInput } = useChatInput();
+  const { temperature, systemPrompt } = useSystemOption();
+  const { exportChat, importChat } = useHandleFiles();
 
   useEffect(() => {
     hydrateFromStorage();
@@ -50,7 +59,15 @@ export default function Home() {
       const now = currentSessionId ?? Date.now();
       if (currentSessionId === null) {
         setSessionList([
-          { id: now, title: lastSubmittedInput.trim() || 'New Chat' },
+          {
+            id: now,
+            title:
+              lastSubmittedInput.trim().length > 20
+                ? `${lastSubmittedInput.trim().substring(0, 20)}...`
+                : lastSubmittedInput.trim() || 'New Chat',
+            temperature,
+            systemPrompt,
+          },
           ...sessionList,
         ]);
       }
@@ -64,6 +81,8 @@ export default function Home() {
       lastSubmittedInput,
       setCurrentSessionId,
       setSessionList,
+      temperature,
+      systemPrompt,
     ],
   );
 
@@ -101,12 +120,45 @@ export default function Home() {
           <span className="font-semibold text-lg mx-auto text-[var(--color-font)]">
             AI Chatbot
           </span>
-          <Switch
-            checked={theme === 'dark'}
-            onChange={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            checkedChildren={<MoonOutlined />}
-            unCheckedChildren={<SunOutlined />}
-          />
+          <div className="flex justify-center items-center gap-5">
+            <Upload
+              accept=".json"
+              beforeUpload={importChat}
+              showUploadList={false}
+            >
+              <Button
+                icon={<ImportOutlined />}
+                styles={{
+                  root: {
+                    backgroundColor: 'var(--color-default)',
+                    border: '1px solid var(--color-third)',
+                    color: 'var(--color-font)',
+                  },
+                }}
+              >
+                导入会话
+              </Button>
+            </Upload>
+            <Button
+              icon={<ExportOutlined />}
+              styles={{
+                root: {
+                  backgroundColor: 'var(--color-default)',
+                  border: '1px solid var(--color-third)',
+                  color: 'var(--color-font)',
+                },
+              }}
+              onClick={() => exportChat(messages)}
+            >
+              导出会话
+            </Button>
+            <Switch
+              checked={theme === 'dark'}
+              onChange={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              checkedChildren={<MoonOutlined />}
+              unCheckedChildren={<SunOutlined />}
+            />
+          </div>
         </header>
 
         <div
