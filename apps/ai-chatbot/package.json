@@ -7,16 +7,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "jest --selectProjects ai-chatbot",
+    "test:watch": "jest --selectProjects ai-chatbot --watch",
+    "test:coverage": "jest --selectProjects ai-chatbot --coverage"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^2.0.35",
     "@ant-design/icons": "^6.2.3",
     "@ant-design/x-markdown": "^2.7.0",
+    "@myworkspace/LRUCache": "workspace:*",
     "@myworkspace/fetch": "workspace:*",
     "@myworkspace/indexedDB": "workspace:*",
     "ai": "^6.0.185",
     "lodash": "^4.18.1",
+    "nanoid": "^5.1.11",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -26,6 +31,9 @@
     "@ai-sdk/react": "^3.0.187",
     "@ant-design/x": "^2.7.0",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/lodash": "^4.17.24",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -34,6 +42,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "fake-indexeddb": "^6.2.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

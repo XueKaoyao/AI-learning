@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { SettingOutlined } from '@ant-design/icons';
 import { Sender } from '@ant-design/x';
 import { Button, Modal, Tooltip, Slider } from 'antd';
@@ -9,7 +9,7 @@ import { SystemPromptOption } from '../types/systemPromptType';
 import { useThemeStore } from '../store/useThemeStore';
 import { useChatInput } from '../store/useChatInput';
 
-export default function InputTab({
+function InputTab({
   sendMessage,
   stop,
   status,
@@ -181,3 +181,5 @@ export default function InputTab({
     </div>
   );
 }
+
+export default memo(InputTab);

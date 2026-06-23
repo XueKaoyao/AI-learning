@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { SystemPromptOption } from '../types/systemPromptType';
 import { apiFetch, FetchError } from '@myworkspace/fetch';
+import { loadCustomPrompts } from '../store/useCustomPrompts';
 
 interface FetchState<T> {
   results: T;
+  setResults: React.Dispatch<React.SetStateAction<T>>;
   loading: boolean;
   error: FetchError | null;
 }
@@ -24,7 +26,8 @@ export default function useFetchPrompts(): FetchState<SystemPromptOption[]> {
         const data = await apiFetch<SystemPromptOption[]>('/api/systemprompt', {
           cacheConfig: { revalidate: true },
         });
-        if (!cancelled) setResults(data);
+        const customPrompt = await loadCustomPrompts();
+        if (!cancelled) setResults([...data, ...customPrompt]);
       } catch (err: unknown) {
         if (cancelled) return;
 
@@ -50,5 +53,5 @@ export default function useFetchPrompts(): FetchState<SystemPromptOption[]> {
     };
   }, []);
 
-  return { results, loading, error };
+  return { results, setResults, loading, error };
 }

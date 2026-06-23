@@ -1,9 +1,5 @@
 import { create } from 'zustand';
-
-interface SessionType {
-  id: number; // 会话创建时间
-  title: string;
-}
+import { SessionType } from '../types/sessionManage';
 
 interface SessionListState {
   currentSessionId: number | null;
