@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useCallback, useRef, useEffect } from 'react';
+import { memo, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Actions, Bubble } from '@ant-design/x';
 import type { BubbleProps, BubbleItemType } from '@ant-design/x';
 import { Avatar } from 'antd';
@@ -21,7 +21,7 @@ interface Props {
   regenerate: (options?: ChatRequestOptions) => Promise<void>;
 }
 
-export default function ChatBubble({ messages, status, regenerate }: Props) {
+function ChatBubble({ messages, status, regenerate }: Props) {
   const { theme } = useThemeStore();
   const isIdle =
     status !== ChatStatus.Submitted && status !== ChatStatus.Streaming;
@@ -178,3 +178,5 @@ export default function ChatBubble({ messages, status, regenerate }: Props) {
     />
   );
 }
+
+export default memo(ChatBubble);

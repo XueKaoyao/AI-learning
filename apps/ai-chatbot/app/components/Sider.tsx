@@ -1,4 +1,5 @@
 'use client';
+import { memo, useEffect, useState } from 'react';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import type { ConversationsProps } from '@ant-design/x';
 import { Conversations } from '@ant-design/x';
@@ -6,15 +7,26 @@ import type { GetProp } from 'antd';
 import { Input } from 'antd';
 import { useSessionList } from '../store/useSessionList';
 import { deleteSessionMessages } from '../store/useMessageHistory';
-import { useState } from 'react';
 import { useSystemOption } from '../store/useSystemOption';
 
-export default function Sider() {
+function Sider() {
   const { currentSessionId, setCurrentSessionId, sessionList, setSessionList } =
     useSessionList();
-  const { initialPrompt } = useSystemOption();
+  const { defaultOption, initialPrompt, setTemperature, setSystemPrompt } =
+    useSystemOption();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState('');
+  useEffect(() => {
+    const target = sessionList.find((v) => v.id === currentSessionId);
+    setTemperature(target?.temperature ?? 0.8);
+    setSystemPrompt(target?.systemPrompt ?? defaultOption);
+  }, [
+    sessionList,
+    currentSessionId,
+    defaultOption,
+    setTemperature,
+    setSystemPrompt,
+  ]);
 
   const handleSaveRename = (id: number) => {
     const target = sessionList.find((v) => v.id === id);
@@ -130,3 +142,5 @@ export default function Sider() {
     />
   );
 }
+
+export default memo(Sider);

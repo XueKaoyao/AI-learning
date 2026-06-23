@@ -1,5 +1,10 @@
 import { UIMessage } from 'ai';
-import { withStore, withStoreResult, opts } from '@myworkspace/indexedDB';
+import {
+  withStore,
+  withStoreResult,
+  opts,
+  getAllByIds,
+} from '@myworkspace/indexedDB';
 import { StoredMeta } from '../types/chatStatus';
 
 const DATA_VERSION = 1;
@@ -49,19 +54,20 @@ export async function setMessageHistory(
 }
 
 /**
- * 读取全部已存储消息，按 meta.order 排序后返回。
+ * 读取当前会话的消息历史，按 meta.order 的插入顺序返回。
+ * 只查询属于当前会话的消息，不再全表扫描。
  */
 export async function loadMessageHistory(
   currentSessionId: number | null,
 ): Promise<UIMessage[]> {
   if (currentSessionId === null) return Promise.resolve([]);
   try {
-    // 1. 读取 meta + 全部记录
-    const meta = await withStoreResult<StoredMeta<Map<string, number | null>>>(
+    // 1. 读取 meta
+    const metaArr = await getAllByIds<StoredMeta<Map<string, number | null>>>(
       opts(options),
-      'readonly',
-      (store) => store.get(options.storeKey),
+      [options.storeKey],
     );
+    const meta = metaArr[0] ?? null;
 
     // 版本检查
     if (meta && meta.version !== DATA_VERSION) {
@@ -72,25 +78,18 @@ export async function loadMessageHistory(
       return [];
     }
 
-    const all = await withStoreResult<
-      (UIMessage | StoredMeta<Map<string, number | null>>)[]
-    >(opts(options), 'readonly', (store) => store.getAll());
-    if (!all) return [];
+    // 2. 提取当前会话的消息 ID（按插入顺序排列）
+    const msgIds: string[] = [];
+    for (const [msgId, sessionId] of meta?.order ?? new Map()) {
+      if (sessionId === currentSessionId) {
+        msgIds.push(msgId);
+      }
+    }
 
-    // 2. 过滤出当前会话的消息，按插入顺序排序
-    const order = meta?.order ?? new Map();
-    const sessionEntries = [...order.entries()].filter(
-      ([, sessionId]) => sessionId === currentSessionId,
-    );
-    const orderMap = new Map(sessionEntries.map(([id], i) => [id, i]));
-    const sessionMessageIds = new Set(sessionEntries.map(([id]) => id));
+    if (msgIds.length === 0) return [];
 
-    const messages = all
-      .filter(
-        (r): r is UIMessage =>
-          'id' in r && 'role' in r && sessionMessageIds.has(r.id),
-      )
-      .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0));
+    // 3. 只查询当前会话的消息（getAllByIds 保持传入顺序，无需再排序）
+    const messages = await getAllByIds<UIMessage>(opts(options), msgIds);
 
     return messages;
   } catch (error) {
