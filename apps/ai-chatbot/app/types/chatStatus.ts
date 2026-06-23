@@ -7,3 +7,8 @@ export const ChatStatus = {
 } as const;
 
 export type ChatStatusValue = (typeof ChatStatus)[keyof typeof ChatStatus];
+
+export interface StoredMeta<T> {
+  version: number;
+  order: T;
+}

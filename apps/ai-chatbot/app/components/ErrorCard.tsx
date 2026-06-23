@@ -1,4 +1,5 @@
 'use client';
+import { memo } from 'react';
 import { CloseCircleFilled, ReloadOutlined } from '@ant-design/icons';
 
 interface Props {
@@ -7,7 +8,7 @@ interface Props {
   onDismiss?: () => void;
 }
 
-export default function ErrorCard({ message, onRetry, onDismiss }: Props) {
+function ErrorCard({ message, onRetry, onDismiss }: Props) {
   return (
     <div className="w-full mx-auto animate-fade-in my-5">
       <div className="flex items-start gap-3 rounded-xl border border-red-200/60 bg-red-50/90 px-5 py-4 shadow-sm backdrop-blur-sm dark:border-red-800/40 dark:bg-red-950/60">
@@ -61,3 +62,5 @@ export default function ErrorCard({ message, onRetry, onDismiss }: Props) {
     </div>
   );
 }
+
+export default memo(ErrorCard);

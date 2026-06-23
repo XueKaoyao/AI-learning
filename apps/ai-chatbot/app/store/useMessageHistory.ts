@@ -1,27 +1,20 @@
 import { UIMessage } from 'ai';
-import { withStore, withStoreResult } from '@myworkspace/indexedDB';
+import {
+  withStore,
+  withStoreResult,
+  opts,
+  getAllByIds,
+} from '@myworkspace/indexedDB';
+import { StoredMeta } from '../types/chatStatus';
 
-const DB_NAME = 'ai-chatbot';
-const DB_VERSION = 1;
-const STORE_NAME = 'messageHistory';
-const META_KEY = 'meta';
 const DATA_VERSION = 1;
 
-interface StoredMeta {
-  version: number;
-  /** 消息 ID 插入顺序，用于 load 时排序 */
-  order: Map<string, number | null>;
-}
-
-function opts() {
-  return {
-    dbName: DB_NAME,
-    dbVersion: DB_VERSION,
-    storeName: STORE_NAME,
-    storeKey: META_KEY,
-  };
-}
-
+const options = {
+  dbName: 'ai-chatbot-messages',
+  dbVersion: 1,
+  storeName: 'messageHistory',
+  storeKey: 'meta',
+};
 /**
  * 增量存储：每条消息以自身 id 为 key 独立写入 IndexedDB，
  * 不覆盖已有消息。同时更新 meta.order 维护插入顺序。
@@ -33,15 +26,15 @@ export async function setMessageHistory(
   if (newMessages.length === 0) return;
   try {
     // 1. 读取当前 meta（获取已有 order）
-    const meta = await withStoreResult<StoredMeta>(
-      opts(),
+    const meta = await withStoreResult<StoredMeta<Map<string, number | null>>>(
+      opts(options),
       'readonly',
-      (store) => store.get(META_KEY),
+      (store) => store.get(options.storeKey),
     );
     const order = meta?.order || new Map<string, number>();
 
     // 2. 写入新消息 + 更新 order
-    await withStore(opts(), 'readwrite', (store) => {
+    await withStore(opts(options), 'readwrite', (store) => {
       for (const msg of newMessages) {
         store.put(msg, msg.id);
         if (!order.has(msg.id)) {
@@ -49,8 +42,10 @@ export async function setMessageHistory(
         }
       }
       store.put(
-        { version: DATA_VERSION, order } satisfies StoredMeta,
-        META_KEY,
+        { version: DATA_VERSION, order } satisfies StoredMeta<
+          Map<string, number | null>
+        >,
+        options.storeKey,
       );
     });
   } catch (error) {
@@ -59,19 +54,20 @@ export async function setMessageHistory(
 }
 
 /**
- * 读取全部已存储消息，按 meta.order 排序后返回。
+ * 读取当前会话的消息历史，按 meta.order 的插入顺序返回。
+ * 只查询属于当前会话的消息，不再全表扫描。
  */
 export async function loadMessageHistory(
   currentSessionId: number | null,
 ): Promise<UIMessage[]> {
   if (currentSessionId === null) return Promise.resolve([]);
   try {
-    // 1. 读取 meta + 全部记录
-    const meta = await withStoreResult<StoredMeta>(
-      opts(),
-      'readonly',
-      (store) => store.get(META_KEY),
+    // 1. 读取 meta
+    const metaArr = await getAllByIds<StoredMeta<Map<string, number | null>>>(
+      opts(options),
+      [options.storeKey],
     );
+    const meta = metaArr[0] ?? null;
 
     // 版本检查
     if (meta && meta.version !== DATA_VERSION) {
@@ -82,27 +78,18 @@ export async function loadMessageHistory(
       return [];
     }
 
-    const all = await withStoreResult<(UIMessage | StoredMeta)[]>(
-      opts(),
-      'readonly',
-      (store) => store.getAll(),
-    );
-    if (!all) return [];
+    // 2. 提取当前会话的消息 ID（按插入顺序排列）
+    const msgIds: string[] = [];
+    for (const [msgId, sessionId] of meta?.order ?? new Map()) {
+      if (sessionId === currentSessionId) {
+        msgIds.push(msgId);
+      }
+    }
 
-    // 2. 过滤出当前会话的消息，按插入顺序排序
-    const order = meta?.order ?? new Map();
-    const sessionEntries = [...order.entries()].filter(
-      ([, sessionId]) => sessionId === currentSessionId,
-    );
-    const orderMap = new Map(sessionEntries.map(([id], i) => [id, i]));
-    const sessionMessageIds = new Set(sessionEntries.map(([id]) => id));
+    if (msgIds.length === 0) return [];
 
-    const messages = all
-      .filter(
-        (r): r is UIMessage =>
-          'id' in r && 'role' in r && sessionMessageIds.has(r.id),
-      )
-      .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0));
+    // 3. 只查询当前会话的消息（getAllByIds 保持传入顺序，无需再排序）
+    const messages = await getAllByIds<UIMessage>(opts(options), msgIds);
 
     return messages;
   } catch (error) {
@@ -116,7 +103,7 @@ export async function loadMessageHistory(
  */
 export async function clearMessageHistory(): Promise<void> {
   try {
-    await withStore(opts(), 'readwrite', (store) => store.clear());
+    await withStore(opts(options), 'readwrite', (store) => store.clear());
   } catch (error) {
     console.error('Error clearing message history:', error);
   }
@@ -127,10 +114,10 @@ export async function clearMessageHistory(): Promise<void> {
  */
 export async function deleteSessionMessages(sessionId: number): Promise<void> {
   try {
-    const meta = await withStoreResult<StoredMeta>(
-      opts(),
+    const meta = await withStoreResult<StoredMeta<Map<string, number | null>>>(
+      opts(options),
       'readonly',
-      (store) => store.get(META_KEY),
+      (store) => store.get(options.storeKey),
     );
     if (!meta) return;
 
@@ -143,12 +130,12 @@ export async function deleteSessionMessages(sessionId: number): Promise<void> {
     }
     if (keysToDelete.length === 0) return;
 
-    await withStore(opts(), 'readwrite', (store) => {
+    await withStore(opts(options), 'readwrite', (store) => {
       for (const key of keysToDelete) {
         store.delete(key);
         meta.order.delete(key);
       }
-      store.put(meta, META_KEY);
+      store.put(meta, options.storeKey);
     });
   } catch (error) {
     console.error('Error deleting session messages:', error);

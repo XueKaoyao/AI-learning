@@ -1,13 +1,12 @@
 'use client';
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import type { UIMessage } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import dynamic from 'next/dynamic';
 import ErrorCard from './components/ErrorCard';
 import ChatBubble from './components/ChatBubble';
 import WelcomeCard from './components/WelcomeCard';
-import { Switch } from 'antd';
-import { MoonOutlined, SunOutlined } from '@ant-design/icons';
+import Header from './components/Header';
 import { useThemeStore } from './store/useThemeStore';
 import {
   setMessageHistory,
@@ -16,11 +15,14 @@ import {
 import Sider from './components/Sider';
 import { useSessionList } from './store/useSessionList';
 import { useChatInput } from './store/useChatInput';
+import useHandleFiles from './hooks/useHandleFiles';
+import { useSystemOption } from './store/useSystemOption';
+import LRUCache from '@myworkspace/LRUCache';
 
 const InputTab = dynamic(() => import('./components/InputTab'), { ssr: false });
 
 export default function Home() {
-  const { theme, setTheme } = useThemeStore();
+  const { theme } = useThemeStore();
   const {
     currentSessionId,
     setCurrentSessionId,
@@ -29,10 +31,47 @@ export default function Home() {
     hydrateFromStorage,
   } = useSessionList();
   const { lastSubmittedInput } = useChatInput();
+  const { temperature, systemPrompt } = useSystemOption();
+  const { exportChat, importChat } = useHandleFiles();
+
+  const exportChatRef = useRef(exportChat);
+  const importChatRef = useRef(importChat);
+  const messagesRef = useRef<UIMessage[]>([]);
+
+  const messageCacheRef = useRef<LRUCache<UIMessage[]>>(
+    new LRUCache<UIMessage[]>(3),
+  );
+
+  useEffect(() => {
+    exportChatRef.current = exportChat;
+  }, [exportChat]);
+
+  useEffect(() => {
+    importChatRef.current = importChat;
+  }, [importChat]);
+
+  const handleExport = useCallback(() => {
+    exportChatRef.current(messagesRef.current);
+  }, []);
+
+  const handleImport = useCallback((file: File) => {
+    importChatRef.current(file);
+  }, []);
 
   useEffect(() => {
     hydrateFromStorage();
   }, [hydrateFromStorage]);
+
+  const prevSessionListRef = useRef(sessionList);
+  useEffect(() => {
+    const prev = prevSessionListRef.current;
+    for (const s of prev) {
+      if (!sessionList.some((ns) => ns.id === s.id)) {
+        messageCacheRef.current.delete(String(s.id));
+      }
+    }
+    prevSessionListRef.current = sessionList;
+  }, [sessionList]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -50,7 +89,15 @@ export default function Home() {
       const now = currentSessionId ?? Date.now();
       if (currentSessionId === null) {
         setSessionList([
-          { id: now, title: lastSubmittedInput.trim() || 'New Chat' },
+          {
+            id: now,
+            title:
+              lastSubmittedInput.trim().length > 20
+                ? `${lastSubmittedInput.trim().substring(0, 20)}...`
+                : lastSubmittedInput.trim() || 'New Chat',
+            temperature,
+            systemPrompt,
+          },
           ...sessionList,
         ]);
       }
@@ -64,6 +111,8 @@ export default function Home() {
       lastSubmittedInput,
       setCurrentSessionId,
       setSessionList,
+      temperature,
+      systemPrompt,
     ],
   );
 
@@ -81,13 +130,33 @@ export default function Home() {
   });
 
   useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    const cache = messageCacheRef.current;
+    const key = String(currentSessionId);
+    if (cache.has(key)) {
+      setMessages(cache.get(key) ?? []);
+      setHistoryLoaded(true);
+      return;
+    }
     loadMessageHistory(currentSessionId).then((savedHistory) => {
+      if (currentSessionId) cache.set(key, savedHistory);
       setMessages(savedHistory);
       setHistoryLoaded(true);
     });
   }, [currentSessionId, setMessages]);
 
   const visibleError = error && error.message !== dismissedError ? error : null;
+
+  const handleRetry = useCallback(() => {
+    regenerate();
+  }, [regenerate]);
+
+  const handleDismissError = useCallback(() => {
+    if (visibleError) setDismissedError(visibleError.message);
+  }, [visibleError]);
 
   return (
     <div className="flex flex-row h-full">
@@ -97,17 +166,7 @@ export default function Home() {
         </div>
       )}
       <div className="flex-1 min-w-0 flex flex-col h-full">
-        <header className="shrink-0 flex items-center border-b border-secondary px-4 py-5 bg-primary">
-          <span className="font-semibold text-lg mx-auto text-[var(--color-font)]">
-            AI Chatbot
-          </span>
-          <Switch
-            checked={theme === 'dark'}
-            onChange={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            checkedChildren={<MoonOutlined />}
-            unCheckedChildren={<SunOutlined />}
-          />
-        </header>
+        <Header onImport={handleImport} onExport={handleExport} />
 
         <div
           className={`flex flex-col flex-1 min-h-0 ${sessionList.length > 0 ? 'w-full' : 'w-3/4'} px-10 mx-auto`}
@@ -116,8 +175,8 @@ export default function Home() {
             {visibleError && (
               <ErrorCard
                 message={visibleError.message}
-                onRetry={() => regenerate()}
-                onDismiss={() => setDismissedError(visibleError.message)}
+                onRetry={handleRetry}
+                onDismiss={handleDismissError}
               />
             )}
             {historyLoaded && messages.length === 0 && !visibleError && (

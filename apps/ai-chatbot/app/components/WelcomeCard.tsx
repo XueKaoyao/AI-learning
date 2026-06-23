@@ -1,10 +1,11 @@
 'use client';
+import { memo } from 'react';
 import { Welcome } from '@ant-design/x';
 import PromptCards from './PromptCards';
 import { Image } from 'antd';
 import { useThemeStore } from '../store/useThemeStore';
 
-const WelcomeCard = () => {
+const WelcomeCard = memo(function WelcomeCard() {
   const { theme } = useThemeStore();
   return (
     <Welcome
@@ -34,6 +35,6 @@ const WelcomeCard = () => {
       }
     />
   );
-};
+});
 
 export default WelcomeCard;

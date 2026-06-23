@@ -5,6 +5,15 @@ export interface dbOptions {
   storeKey: string;
 }
 
+export function opts(options: dbOptions) {
+  return {
+    dbName: options.dbName,
+    dbVersion: options.dbVersion,
+    storeName: options.storeName,
+    storeKey: options.storeKey,
+  };
+}
+
 function openDB(options: dbOptions): Promise<IDBDatabase> {
   const { dbName, dbVersion, storeName } = options;
   return new Promise((resolve, reject) => {
@@ -70,5 +79,38 @@ export async function withStoreResult<T>(
     const request = fn(store);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
+  });
+}
+
+// 新增工具：按 ID 列表批量读取，保持传入顺序
+export async function getAllByIds<T>(
+  options: dbOptions,
+  ids: string[],
+): Promise<T[]> {
+  if (ids.length === 0) return [];
+  const db = await openDB(options);
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(options.storeName, 'readonly');
+    const store = transaction.objectStore(options.storeName);
+    const results = new Array<T | null>(ids.length).fill(null);
+    let pending = ids.length;
+
+    ids.forEach((id, index) => {
+      const req = store.get(id);
+      req.onsuccess = () => {
+        results[index] = req.result ?? null; // 保持原始顺序
+        if (--pending === 0) {
+          resolve(results.filter((r): r is T => r != null));
+        }
+      };
+      req.onerror = () => {
+        if (--pending === 0) {
+          resolve(results.filter((r): r is T => r != null));
+        }
+      };
+    });
+
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(transaction.error);
   });
 }
