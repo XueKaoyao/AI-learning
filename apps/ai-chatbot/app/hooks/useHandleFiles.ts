@@ -2,7 +2,7 @@ import { UIMessage } from 'ai';
 import { message } from 'antd';
 import { setMessageHistory } from '../store/useMessageHistory';
 import { useSessionList } from '../store/useSessionList';
-import { SessionType } from '../types/sessionManage';
+import { SessionType } from '../types/SessionManageType';
 import { nanoid } from 'nanoid';
 
 interface HandleFilesType {

@@ -8,6 +8,7 @@ import { Input } from 'antd';
 import { useSessionList } from '../store/useSessionList';
 import { deleteSessionMessages } from '../store/useMessageHistory';
 import { useSystemOption } from '../store/useSystemOption';
+import { usePathname, useRouter } from 'next/navigation';
 
 function Sider() {
   const { currentSessionId, setCurrentSessionId, sessionList, setSessionList } =
@@ -16,6 +17,9 @@ function Sider() {
     useSystemOption();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState('');
+  const router = useRouter();
+  const pathname = usePathname();
+
   useEffect(() => {
     const target = sessionList.find((v) => v.id === currentSessionId);
     setTemperature(target?.temperature ?? 0.8);
@@ -106,6 +110,7 @@ function Sider() {
   });
 
   const newChatClick = () => {
+    router.push('/');
     setCurrentSessionId(null);
     initialPrompt();
   };
@@ -119,7 +124,12 @@ function Sider() {
         onClick: newChatClick,
       }}
       activeKey={String(currentSessionId)}
-      onActiveChange={(v) => setCurrentSessionId(+v)}
+      onActiveChange={(v) => {
+        setCurrentSessionId(+v);
+        if (pathname !== '/') {
+          router.push('/');
+        }
+      }}
       styles={{
         root: {
           backgroundColor: 'var(--color-primary)',

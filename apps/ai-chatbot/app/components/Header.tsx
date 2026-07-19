@@ -3,22 +3,39 @@ import { memo } from 'react';
 import { Button, Switch, Upload } from 'antd';
 import {
   ExportOutlined,
+  FileSearchOutlined,
   ImportOutlined,
   MoonOutlined,
   SunOutlined,
 } from '@ant-design/icons';
 import { useThemeStore } from '../store/useThemeStore';
+import { useRouter } from 'next/navigation';
 
 interface HeaderProps {
   onImport: (file: File) => void;
-  onExport: () => void;
+  onExport: () => void | Promise<void>;
 }
 
 function Header({ onImport, onExport }: HeaderProps) {
   const { theme, setTheme } = useThemeStore();
-
+  const router = useRouter();
   return (
     <header className="shrink-0 flex items-center border-b border-secondary px-4 py-5 bg-primary">
+      <Button
+        icon={<FileSearchOutlined />}
+        styles={{
+          root: {
+            backgroundColor: 'var(--color-default)',
+            border: '1px solid var(--color-third)',
+            color: 'var(--color-font)',
+          },
+        }}
+        onClick={() => {
+          router.push('/retrieval');
+        }}
+      >
+        知识库检索
+      </Button>
       <span className="font-semibold text-lg mx-auto text-[var(--color-font)]">
         AI Chatbot
       </span>

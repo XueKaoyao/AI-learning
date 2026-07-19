@@ -1,5 +1,5 @@
 import { useSessionList } from '../useSessionList';
-import { SessionType } from '../../types/sessionManage';
+import { SessionType } from '../../types/SessionManageType';
 
 function createMockSession(id: number, title = 'Test Chat'): SessionType {
   return {

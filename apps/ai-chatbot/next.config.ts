@@ -140,6 +140,8 @@ const nextConfig: NextConfig = {
       fullUrl: true,
     },
   },
+
+  serverExternalPackages: ['@xenova/transformers'],
 };
 
 export default nextConfig;

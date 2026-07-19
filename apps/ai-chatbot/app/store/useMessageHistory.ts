@@ -5,7 +5,7 @@ import {
   opts,
   getAllByIds,
 } from '@myworkspace/indexedDB';
-import { StoredMeta } from '../types/chatStatus';
+import { StoredMeta } from '../types/ChatStatusType';
 
 const DATA_VERSION = 1;
 

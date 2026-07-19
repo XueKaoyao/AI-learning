@@ -11,7 +11,7 @@ import {
 import { useThemeStore } from '../store/useThemeStore';
 import XMarkdown from '@ant-design/x-markdown';
 import type { UIMessage, ChatRequestOptions } from 'ai';
-import { ChatStatus } from '../types/chatStatus';
+import { ChatStatus } from '../types/ChatStatusType';
 import '@ant-design/x-markdown/themes/light.css';
 import '@ant-design/x-markdown/themes/dark.css';
 

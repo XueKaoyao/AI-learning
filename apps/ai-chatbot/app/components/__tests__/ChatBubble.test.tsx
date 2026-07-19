@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import ChatBubble from '../ChatBubble';
-import { ChatStatus } from '../../types/chatStatus';
+import { ChatStatus } from '../../types/ChatStatusType';
 
 // Mock @ant-design/x (Bubble.List, Actions)
 // The Bubble.List mock renders content, extra (Actions), and calls

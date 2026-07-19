@@ -5,7 +5,7 @@ import { Sender } from '@ant-design/x';
 import { Button, Modal, Tooltip, Slider } from 'antd';
 import SystemPromptItems from './SystemPromptItems';
 import { useSystemOption } from '../store/useSystemOption';
-import { SystemPromptOption } from '../types/systemPromptType';
+import { SystemPromptOption } from '../types/SystemPromptType';
 import { useThemeStore } from '../store/useThemeStore';
 import { useChatInput } from '../store/useChatInput';
 

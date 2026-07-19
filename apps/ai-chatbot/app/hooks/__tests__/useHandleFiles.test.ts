@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { UIMessage } from 'ai';
-import { SessionType } from '../../types/sessionManage';
+import { SessionType } from '../../types/SessionManageType';
 
 // Define mock objects BEFORE jest.mock (jest.mock factory is hoisted and
 // uses these references; they're closed over, not accessed at execution)

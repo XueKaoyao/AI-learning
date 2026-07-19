@@ -1,7 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Sider from '../Sider';
-import { SessionType } from '../../types/sessionManage';
+import { SessionType } from '../../types/SessionManageType';
+
+const mockPush = jest.fn();
+let mockPathname = '/';
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush }),
+  usePathname: () => mockPathname,
+}));
 
 // Mock @ant-design/x Conversations (ESM dependency)
 jest.mock('@ant-design/x', () => ({
@@ -120,6 +128,8 @@ function createSession(id: number, title = 'Test Chat'): SessionType {
 describe('Sider', () => {
   beforeEach(() => {
     mockSessions = [createSession(1, 'Chat 1'), createSession(2, 'Chat 2')];
+    mockPathname = '/';
+    mockPush.mockClear();
     mockSetCurrentSessionId.mockClear();
     mockSetSessionList.mockClear();
     mockInitialPrompt.mockClear();
@@ -163,6 +173,7 @@ describe('Sider', () => {
 
       expect(mockSetCurrentSessionId).toHaveBeenCalledWith(null);
       expect(mockInitialPrompt).toHaveBeenCalled();
+      expect(mockPush).toHaveBeenCalledWith('/');
     });
   });
 
@@ -173,6 +184,17 @@ describe('Sider', () => {
       await userEvent.click(screen.getByTestId('session-1'));
 
       expect(mockSetCurrentSessionId).toHaveBeenCalledWith(1);
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it('navigates to home when switching session off the main path', async () => {
+      mockPathname = '/retrieval';
+      render(<Sider />);
+
+      await userEvent.click(screen.getByTestId('session-2'));
+
+      expect(mockSetCurrentSessionId).toHaveBeenCalledWith(2);
+      expect(mockPush).toHaveBeenCalledWith('/');
     });
   });
 

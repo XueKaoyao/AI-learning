@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { SessionType } from '../types/sessionManage';
+import { SessionType } from '../types/SessionManageType';
 
 interface SessionListState {
   currentSessionId: number | null;
