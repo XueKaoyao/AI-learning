@@ -5,7 +5,8 @@
   "packageManager": "pnpm@10.32.1",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "postinstall": "prisma generate",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "seed:docs": "node scripts/seed-documents.mjs",

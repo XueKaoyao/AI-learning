@@ -16,11 +16,8 @@ function createPrismaClient() {
 }
 
 function getPrismaClient(): PrismaClient {
-  const cached = globalForPrisma.prisma;
-
-  // migrate 新增模型后，dev HMR 可能仍持有旧 Client（无 chunk）
-  if (cached?.chunk) {
-    return cached;
+  if (globalForPrisma.prisma) {
+    return globalForPrisma.prisma;
   }
 
   const client = createPrismaClient();
