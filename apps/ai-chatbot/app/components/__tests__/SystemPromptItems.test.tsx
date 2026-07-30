@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SystemPromptItems from '../SystemPromptItems';
-import { SystemPromptOption } from '../../types/systemPromptType';
+import { SystemPromptOption } from '../../types/SystemPromptType';
 
 // Mock lodash throttle — execute immediately in tests
 jest.mock('lodash/throttle', () => ({

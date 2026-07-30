@@ -1,5 +1,5 @@
 'use client';
-import { memo, useMemo, useCallback, useRef, useEffect } from 'react';
+import { memo, useMemo, useCallback, type ReactNode } from 'react';
 import { Actions, Bubble } from '@ant-design/x';
 import type { BubbleProps, BubbleItemType } from '@ant-design/x';
 import { Avatar } from 'antd';
@@ -11,7 +11,8 @@ import {
 import { useThemeStore } from '../store/useThemeStore';
 import XMarkdown from '@ant-design/x-markdown';
 import type { UIMessage, ChatRequestOptions } from 'ai';
-import { ChatStatus } from '../types/chatStatus';
+import { ChatStatus } from '../types/ChatStatusType';
+import type { RetrievalToolResult } from '../tools/retrievalTool';
 import '@ant-design/x-markdown/themes/light.css';
 import '@ant-design/x-markdown/themes/dark.css';
 
@@ -21,25 +22,67 @@ interface Props {
   regenerate: (options?: ChatRequestOptions) => Promise<void>;
 }
 
+function isRetrievalOutput(value: unknown): value is RetrievalToolResult {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'count' in value &&
+    'titles' in value &&
+    Array.isArray((value as RetrievalToolResult).titles)
+  );
+}
+
+/** 简洁展示：已检索知识库 + 命中条数 + 文档标题列表 */
+function RetrievalCallSummary({
+  state,
+  output,
+}: {
+  state: string;
+  output: unknown;
+}) {
+  if (state === 'input-streaming' || state === 'input-available') {
+    return (
+      <div data-testid="retrieval-call" className="text-xs opacity-70 mb-2">
+        正在检索知识库…
+      </div>
+    );
+  }
+
+  if (state === 'output-error') {
+    return (
+      <div data-testid="retrieval-call" className="text-xs opacity-70 mb-2">
+        知识库检索失败
+      </div>
+    );
+  }
+
+  if (state === 'output-available' && isRetrievalOutput(output)) {
+    const titles =
+      output.titles.length > 0 ? output.titles.join('、') : '无匹配文档';
+    return (
+      <div data-testid="retrieval-call" className="text-xs opacity-70 mb-2">
+        已检索知识库（{output.count} 条）
+        {output.count > 0 ? `：${titles}` : ''}
+      </div>
+    );
+  }
+
+  return null;
+}
+
 function ChatBubble({ messages, status, regenerate }: Props) {
   const { theme } = useThemeStore();
   const isIdle =
     status !== ChatStatus.Submitted && status !== ChatStatus.Streaming;
-  const statusRef = useRef(status);
   const className = theme === 'light' ? 'x-markdown-light' : 'x-markdown-dark';
+  const isStreaming = status === ChatStatus.Streaming;
 
-  useEffect(() => {
-    statusRef.current = status;
-  }, [status]);
-
-  const renderMarkdown: BubbleProps['contentRender'] = useCallback(
+  const renderMarkdown = useCallback(
     (content: string) => {
-      const isStreaming = statusRef.current === ChatStatus.Streaming;
-
       return (
         <XMarkdown
           className={className}
-          content={content as string}
+          content={content}
           paragraphTag="div"
           streaming={{
             hasNextChunk: isStreaming,
@@ -52,7 +95,7 @@ function ChatBubble({ messages, status, regenerate }: Props) {
         />
       );
     },
-    [className],
+    [className, isStreaming],
   );
 
   const items: BubbleItemType[] = useMemo(() => {
@@ -101,25 +144,47 @@ function ChatBubble({ messages, status, regenerate }: Props) {
 
     const bubbleItems: BubbleItemType[] = messages.map((msg, i) => {
       let text = '';
+      const retrievalSummaries: ReactNode[] = [];
       for (let j = 0; j < msg.parts.length; j++) {
         const part = msg.parts[j];
-        if (part.type === 'text') text += part.text;
+        if (part.type === 'text') {
+          text += part.text;
+          continue;
+        }
+        if (part.type === 'tool-getInformation') {
+          retrievalSummaries.push(
+            <RetrievalCallSummary
+              key={part.toolCallId}
+              state={part.state}
+              output={'output' in part ? part.output : undefined}
+            />,
+          );
+        }
       }
 
       const isUser = msg.role === 'user';
       const isLastAssistant = !isUser && i === lastAssistantIndex;
 
+      const content: string | ReactNode = isUser ? (
+        text
+      ) : (
+        <div>
+          {retrievalSummaries}
+          {text ? renderMarkdown(text) : null}
+        </div>
+      );
+
       return {
         key: msg.id,
         role: msg.role as string,
-        content: text,
+        content,
         shape: 'corner' as const,
         placement: (isUser ? 'end' : 'start') as BubbleProps['placement'],
         avatar: (
           <Avatar icon={isUser ? <UserOutlined /> : <OpenAIOutlined />} />
         ),
         extra: <Actions items={actionItems(text, isLastAssistant)} />,
-        contentRender: isUser ? undefined : renderMarkdown,
+        contentRender: undefined,
         styles: {
           content: {
             backgroundColor: 'var(--color-default)',

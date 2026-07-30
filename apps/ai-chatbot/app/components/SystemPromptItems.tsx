@@ -1,7 +1,7 @@
 import { Button, Card, Input, message, Popconfirm, Radio } from 'antd';
 import { useState, useRef, useEffect } from 'react';
 import { useSystemOption } from '../store/useSystemOption';
-import { SystemPromptOption } from '../types/systemPromptType';
+import { SystemPromptOption } from '../types/SystemPromptType';
 import useFetchPrompts from '../hooks/useFetchPrompts';
 import {
   addCustomPrompt,

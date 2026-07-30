@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import InputTab from '../InputTab';
-import { SystemPromptOption } from '../../types/systemPromptType';
+import { SystemPromptOption } from '../../types/SystemPromptType';
 
 // Mock @ant-design/x (Sender with footer render prop)
 jest.mock('@ant-design/x', () => ({

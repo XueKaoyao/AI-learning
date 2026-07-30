@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { SystemPromptOption } from '../types/systemPromptType';
+import { SystemPromptOption } from '../types/SystemPromptType';
 import { apiFetch, FetchError } from '@myworkspace/fetch';
 import { loadCustomPrompts } from '../store/useCustomPrompts';
 

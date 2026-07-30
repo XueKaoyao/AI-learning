@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import ChatBubble from '../ChatBubble';
-import { ChatStatus } from '../../types/chatStatus';
+import { ChatStatus } from '../../types/ChatStatusType';
 
 // Mock @ant-design/x (Bubble.List, Actions)
 // The Bubble.List mock renders content, extra (Actions), and calls
@@ -24,9 +24,7 @@ jest.mock('@ant-design/x', () => ({
           const renderedContent =
             item.contentRender && typeof item.content === 'string'
               ? item.contentRender(item.content)
-              : typeof item.content === 'string'
-                ? item.content
-                : null;
+              : item.content;
           return (
             <div
               key={item.key}
@@ -350,6 +348,41 @@ describe('ChatBubble', () => {
       expect(screen.getByTestId('bubble-content-1')).toHaveTextContent(
         'Hello World',
       );
+    });
+
+    it('renders retrieval tool summary with count and titles', () => {
+      const messages = [
+        {
+          id: '1',
+          role: 'assistant' as const,
+          parts: [
+            {
+              type: 'tool-getInformation' as const,
+              toolCallId: 'call-1',
+              state: 'output-available' as const,
+              input: { question: '什么是 RAG' },
+              output: {
+                count: 2,
+                titles: ['RAG 简介', '向量检索'],
+                results: [],
+              },
+            },
+            { type: 'text' as const, text: '根据知识库…' },
+          ],
+          createdAt: new Date(),
+        } as import('ai').UIMessage,
+      ];
+      render(
+        <ChatBubble
+          messages={messages}
+          status={ChatStatus.Ready}
+          regenerate={mockRegenerate}
+        />,
+      );
+      expect(screen.getByTestId('retrieval-call')).toHaveTextContent(
+        '已检索知识库（2 条）：RAG 简介、向量检索',
+      );
+      expect(screen.getByTestId('x-markdown')).toHaveTextContent('根据知识库…');
     });
   });
 });

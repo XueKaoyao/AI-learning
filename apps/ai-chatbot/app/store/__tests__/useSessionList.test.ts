@@ -1,9 +1,9 @@
 import { useSessionList } from '../useSessionList';
-import { SessionType } from '../../types/sessionManage';
+import { SessionType } from '../../types/SessionManageType';
 
 function createMockSession(id: number, title = 'Test Chat'): SessionType {
   return {
-    id,
+    userId: 'test-user',
     title,
     temperature: 0.8,
     systemPrompt: {
@@ -75,7 +75,7 @@ describe('useSessionList', () => {
 
       const list = useSessionList.getState().sessionList;
       expect(list).toHaveLength(1);
-      expect(list[0].id).toBe(2);
+      expect(list[0].userId).toBe('test-user');
     });
   });
 
