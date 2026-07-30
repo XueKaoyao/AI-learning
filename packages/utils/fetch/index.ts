@@ -318,7 +318,13 @@ const handleApiResponse = async <T>(
       userMessage = `请求参数错误：${responseMessage}`;
       break;
     case 401:
-      userMessage = '登录已过期，请重新登录';
+      // 保留服务端具体错误（如登录失败）；仅对通用 Unauthorized 提示重新登录
+      userMessage =
+        responseMessage &&
+        responseMessage !== 'Unauthorized' &&
+        responseMessage !== '请求失败'
+          ? responseMessage
+          : '登录已过期，请重新登录';
       break;
     case 403:
       userMessage = '没有权限执行此操作';

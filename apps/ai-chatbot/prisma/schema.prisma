@@ -16,21 +16,53 @@ model Document {
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  chunks    Chunk[]
+  // chunks    Chunk[]
+}
+
+model Message {
+  id              String @id @default(cuid())
+  sessionId       String
+  session         Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  parts           Json[]
+  role            String
+  createdAt DateTime @default(now())
+  @@index([sessionId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  title     String
+  systemPrompt Json
+  temperature Float
+  userId    String
+  user      User     @relation(fields:[userId],references:[id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages  Message[] //消息数组
+  @@index([userId])
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  sessions     Session[]
 }
 
 /// 文档片段 + 向量，写入 Document 时同步生成
-model Chunk {
-  id         String   @id @default(uuid())
-  documentId String
-  content    String
-  /// L2 归一化后的 embedding（如 384 维）
-  embedding  Float[]
-  /// 在原文中的片段序号
-  index      Int
-  createdAt  DateTime @default(now())
+// model Chunk {
+//   id         String   @id @default(uuid())
+//   documentId String
+//   content    String
+//   /// L2 归一化后的 embedding（如 384 维）
+//   embedding  Float[]
+//   /// 在原文中的片段序号
+//   index      Int
+//   createdAt  DateTime @default(now())
 
-  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+//   document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
-  @@index([documentId])
-}
+//   @@index([documentId])
+// }

@@ -99,7 +99,7 @@ let mockSessions: SessionType[] = [];
 
 jest.mock('../../store/useSessionList', () => ({
   useSessionList: () => ({
-    currentSessionId: mockSessions.length > 0 ? mockSessions[0].id : null,
+    currentSessionId: mockSessions.length > 0 ? mockSessions[0].userId : null,
     setCurrentSessionId: mockSetCurrentSessionId,
     sessionList: mockSessions,
     setSessionList: mockSetSessionList,
@@ -118,7 +118,7 @@ jest.mock('../../store/useMessageHistory', () => ({
 
 function createSession(id: number, title = 'Test Chat'): SessionType {
   return {
-    id,
+    userId: 'test-user',
     title,
     temperature: 0.8,
     systemPrompt: { id: '0', description: '', content: '' },

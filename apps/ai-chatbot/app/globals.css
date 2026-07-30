@@ -20,6 +20,10 @@
   --color-fontbg: #f5f5f53f;
   --skeleton-base: #e8e8e8;
   --skeleton-shine: #f5f5f5;
+  --color-border: #d3d1d196;
+  --error-border: #ff0000;
+  --error-bg: #ff00001a;
+  --error-text: #c90202;
 }
 
 [data-theme='dark'] {
@@ -30,9 +34,13 @@
   --color-default: #5a5a5a79;
   --color-font: #ffffff;
   --color-fontbg: #b4b4b42f;
-  --color-placeholder: #ffffff;
+  --color-placeholder: #ffffff70;
   --skeleton-base: #2a2a2a;
   --skeleton-shine: #3a3a3a;
+  --color-border: #ffffff54;
+  --error-border: #fa54548f;
+  --error-bg: #ff00003a;
+  --error-text: #f81c1cda;
 }
 
 .sender-input::placeholder {
@@ -61,6 +69,16 @@ body {
   scrollbar-width: thin;
 }
 
+/* ========== Header Buttons ========== */
+.header-button:hover {
+  background-color: var(--color-secondary) !important;
+}
+
+.user-card-logout:hover {
+  background-color: var(--error-bg) !important;
+  border-color: var(--error-border) !important;
+}
+
 /* ========== Sider Conversations ========== */
 .sider-conversations .ant-conversations-label {
   color: var(--color-font) !important;
@@ -80,6 +98,24 @@ body {
 
 .sider-conversations .ant-conversations-creation:hover {
   background-color: var(--color-secondary) !important;
+}
+
+/* ========== Login Input ========== */
+.login-input {
+  margin-left: 5px !important;
+}
+
+.login-input::placeholder {
+  color: var(--color-placeholder) !important;
+}
+
+.login-password-input .ant-input-password-icon {
+  color: var(--color-font) !important;
+}
+
+.login-password-input .ant-input-password-icon:hover {
+  color: var(--color-font) !important;
+  opacity: 0.75;
 }
 
 /* ========== Retrieval suggested tags ========== */

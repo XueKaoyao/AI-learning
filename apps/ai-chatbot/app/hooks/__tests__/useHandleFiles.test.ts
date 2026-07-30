@@ -54,7 +54,7 @@ function createMockMessage(
 
 function createMockSession(id: number, title: string): SessionType {
   return {
-    id,
+    userId: 'test-user',
     title,
     temperature: 0.8,
     systemPrompt: { id: '0', description: '', content: '' },
@@ -123,7 +123,7 @@ describe('useHandleFiles', () => {
       jest
         .spyOn(global, 'Blob')
         .mockImplementationOnce(
-          (parts: BlobPart[], options?: BlobPropertyBag) => {
+          (parts: BlobPart[] | undefined, options?: BlobPropertyBag) => {
             blob = new originalBlob(parts, options);
             return blob;
           },
@@ -145,7 +145,8 @@ describe('useHandleFiles', () => {
           parts: [{ type: 'text', text: 'test' }],
         } as UIMessage,
       ];
-      (badMessages[0] as Record<string, unknown>).circular = badMessages;
+      (badMessages[0] as unknown as Record<string, unknown>).circular =
+        badMessages;
 
       const { result } = renderHook(() => useHandleFiles());
 

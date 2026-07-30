@@ -1,9 +1,7 @@
-import type { Config } from 'jest';
-import path from 'path';
-
-const config: Config = {
+/** @type {import('jest').Config} */
+const config = {
   displayName: 'packages',
-  rootDir: path.resolve(__dirname),
+  rootDir: __dirname,
 
   // Node environment for pure logic packages (no DOM needed)
   testEnvironment: 'node',
@@ -34,4 +32,4 @@ const config: Config = {
   clearMocks: true,
 };
 
-export default config;
+module.exports = config;

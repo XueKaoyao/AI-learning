@@ -43,7 +43,6 @@ export default function RetrievalPage() {
           'Content-Type': 'application/json',
         },
       });
-      console.log(data);
       setSubmittedQuery(q);
       setHits(data.results ?? []);
     } catch (error) {

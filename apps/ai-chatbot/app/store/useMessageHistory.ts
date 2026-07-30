@@ -1,3 +1,5 @@
+// 传统方案：使用 IndexedDB 存储消息历史
+
 import { UIMessage } from 'ai';
 import {
   withStore,

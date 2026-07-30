@@ -1,29 +1,33 @@
 import { create } from 'zustand';
 import { SessionType } from '../types/SessionManageType';
+import { apiFetch } from '@myworkspace/fetch';
 
 interface SessionListState {
-  currentSessionId: number | null;
-  setCurrentSessionId: (id: number | null) => void;
+  currentSessionId: string | null;
+  setCurrentSessionId: (id: string | null) => void;
   sessionList: SessionType[];
-  setSessionList: (list: SessionType[]) => void;
-  hydrateFromStorage: () => void;
+  fetchSessionList: (userId: string) => Promise<void>;
 }
 
-export const useSessionList = create<SessionListState>((set) => ({
-  currentSessionId: null,
-  setCurrentSessionId: (id: number | null) => set({ currentSessionId: id }),
-  sessionList: [],
-  setSessionList: (list: SessionType[]) => {
-    set({ sessionList: list });
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('sessionList', JSON.stringify(list));
-    }
-  },
-  hydrateFromStorage: () => {
-    if (typeof window === 'undefined') return;
-    const stored = localStorage.getItem('sessionList');
-    if (stored) {
-      set({ sessionList: JSON.parse(stored) });
-    }
-  },
-}));
+export const useSessionList = create<SessionListState>((set) => {
+  return {
+    currentSessionId: null,
+    setCurrentSessionId: (id: string | null) => set({ currentSessionId: id }),
+    sessionList: [],
+    fetchSessionList: async (userId: string) => {
+      try {
+        if (!userId) throw new Error('请先登录！');
+        const response = await apiFetch(`/api/sessions?userId=${userId}`, {
+          cacheConfig: { ttl: 0 },
+        });
+        const sessions = (response as SessionType[]).sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+        set({ sessionList: sessions });
+      } catch (error) {
+        console.error(error);
+      }
+    },
+  };
+});

@@ -5,3 +5,4 @@ node_modules
 .env.*.local
 coverage/
 apps/ai-chatbot/app/generated/
+apps/ai-chatbot/.lancedb/

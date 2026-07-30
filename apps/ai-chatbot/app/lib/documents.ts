@@ -1,7 +1,11 @@
 import { prisma } from '@/app/lib/prisma';
 import type { Document } from '@/app/generated/prisma/client';
 import { Prisma } from '@/app/generated/prisma/client';
-import { indexDocumentChunks } from '@/app/lib/chunks';
+import {
+  clearAllChunks,
+  indexDocumentChunks,
+  removeDocumentChunks,
+} from '@/app/lib/chunks';
 
 export type CreateDocumentInput = {
   title: string;
@@ -31,7 +35,7 @@ export async function getAllDocuments(): Promise<Document[]> {
   });
 }
 
-/** 写入单条 Document，并同步切分向量入库 */
+/** 写入单条 Document，并同步切分向量写入 LanceDB */
 export async function createDocument(
   input: CreateDocumentInput,
 ): Promise<Document> {
@@ -49,7 +53,7 @@ export async function createDocument(
   return document;
 }
 
-/** 批量写入 Document，并同步切分向量入库 */
+/** 批量写入 Document，并同步切分向量写入 LanceDB */
 export async function createDocuments(
   inputs: CreateDocumentInput[],
 ): Promise<Document[]> {
@@ -72,13 +76,15 @@ export async function createDocuments(
   return documents;
 }
 
-/** 按 id 删除单条（Chunk 经 Cascade 一并删除） */
+/** 按 id 删除 Document，并清理 LanceDB 向量 */
 export async function deleteDocument(id: string): Promise<Document> {
   assertNonEmpty(id, 'id');
+  const trimmed = id.trim();
 
   try {
+    await removeDocumentChunks(trimmed);
     return await prisma.document.delete({
-      where: { id: id.trim() },
+      where: { id: trimmed },
     });
   } catch (error) {
     if (
@@ -104,12 +110,17 @@ export async function deleteDocuments(
     return id.trim();
   });
 
+  for (const id of cleaned) {
+    await removeDocumentChunks(id);
+  }
+
   return prisma.document.deleteMany({
     where: { id: { in: cleaned } },
   });
 }
 
-/** 清空全部 Document（Chunk 级联清空） */
+/** 清空全部 Document，并清空 LanceDB chunks */
 export async function deleteAllDocuments(): Promise<{ count: number }> {
+  await clearAllChunks();
   return prisma.document.deleteMany();
 }

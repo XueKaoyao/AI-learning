@@ -6,19 +6,27 @@ import { Conversations } from '@ant-design/x';
 import type { GetProp } from 'antd';
 import { Input } from 'antd';
 import { useSessionList } from '../store/useSessionList';
-import { deleteSessionMessages } from '../store/useMessageHistory';
+// import { deleteSessionMessages } from '../store/useMessageHistory';
 import { useSystemOption } from '../store/useSystemOption';
 import { usePathname, useRouter } from 'next/navigation';
+import useSessionsCrud from '../hooks/useSessionsCrud';
+import { useUserStore } from '../store/useUserStore';
 
 function Sider() {
-  const { currentSessionId, setCurrentSessionId, sessionList, setSessionList } =
-    useSessionList();
+  const {
+    currentSessionId,
+    setCurrentSessionId,
+    sessionList,
+    fetchSessionList,
+  } = useSessionList();
   const { defaultOption, initialPrompt, setTemperature, setSystemPrompt } =
     useSystemOption();
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const router = useRouter();
   const pathname = usePathname();
+  const { updateSession, deleteSession } = useSessionsCrud();
+  const { user } = useUserStore();
 
   useEffect(() => {
     const target = sessionList.find((v) => v.id === currentSessionId);
@@ -32,28 +40,35 @@ function Sider() {
     setSystemPrompt,
   ]);
 
-  const handleSaveRename = (id: number) => {
-    const target = sessionList.find((v) => v.id === id);
-    if (!target) return;
-    const trimmed =
-      editTitle.trim().length > 20
-        ? `${editTitle.trim().substring(0, 20)}...`
-        : editTitle.trim();
-    // 空标题不允许保存，直接取消编辑
-    if (!trimmed) {
+  const handleSaveRename = async (id: string) => {
+    try {
+      if (!id) return;
+      const trimmed =
+        editTitle.trim().length > 20
+          ? `${editTitle.trim().substring(0, 20)}...`
+          : editTitle.trim();
+      // 空标题不允许保存，直接取消编辑
+      if (!trimmed) {
+        setEditingId(null);
+        return;
+      }
+      await updateSession({ id, newData: { title: trimmed } });
+      await fetchSessionList(user?.id ?? '');
+      // const newList = sessionList.filter((v) => v.id !== id);
+      // if (target.title !== trimmed) {
+      //   setSessionList([{ ...target, title: trimmed }, ...newList]);
+      // }
       setEditingId(null);
-      return;
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setEditingId(null);
     }
-    const newList = sessionList.filter((v) => v.id !== id);
-    if (target.title !== trimmed) {
-      setSessionList([{ ...target, title: trimmed }, ...newList]);
-    }
-    setEditingId(null);
   };
 
   const items: GetProp<ConversationsProps, 'items'> = sessionList.map(
     (session) => ({
-      key: `${session.id}`,
+      key: session.id,
       label:
         editingId === session.id ? (
           <Input
@@ -85,9 +100,10 @@ function Sider() {
         key: 'Rename',
         icon: <EditOutlined />,
         onClick: () => {
-          const id = +conversation.key;
+          const id = conversation.key;
           setEditingId(id);
-          setEditTitle(sessionList.find((s) => s.id === id)?.title || '');
+          setEditTitle(conversation.label as string);
+          // setEditTitle(sessionList.find((s) => s.id === id)?.title || '');
         },
       },
       {
@@ -95,11 +111,13 @@ function Sider() {
         key: 'deleteChat',
         icon: <DeleteOutlined />,
         danger: true,
-        onClick: () => {
-          const deletedId = +conversation.key;
-          const newSessionList = sessionList.filter((v) => v.id !== deletedId);
-          setSessionList(newSessionList);
-          deleteSessionMessages(deletedId);
+        onClick: async () => {
+          const deletedId = conversation.key;
+          await deleteSession(deletedId);
+          await fetchSessionList(user?.id ?? '');
+          // const newSessionList = sessionList.filter((v) => v.id !== deletedId);
+          // setSessionList(newSessionList);
+          // deleteSessionMessages(deletedId);
           if (currentSessionId === deletedId) {
             setCurrentSessionId(null);
             initialPrompt();
@@ -116,40 +134,37 @@ function Sider() {
   };
 
   return (
-    <Conversations
-      menu={menuConfig}
-      items={items}
-      className="sider-conversations"
-      creation={{
-        onClick: newChatClick,
-      }}
-      activeKey={String(currentSessionId)}
-      onActiveChange={(v) => {
-        setCurrentSessionId(+v);
-        if (pathname !== '/') {
-          router.push('/');
-        }
-      }}
-      styles={{
-        root: {
-          backgroundColor: 'var(--color-primary)',
-          borderRight: '1px solid var(--color-secondary)',
-          height: '100%',
-        },
-        item: {
-          borderRadius: 50,
-          marginBottom: 5,
-          padding: '8px 15px',
-        },
-        creation: {
-          backgroundColor: 'var(--color-default)',
-          borderColor: 'var(--color-third)',
-          color: 'var(--color-font)',
-          marginBottom: 10,
-          marginTop: 8,
-        },
-      }}
-    />
+    <div className="w-full h-full bg-[var(--color-primary)] border-r border-[var(--color-secondary)] overflow-y-auto scrollbar-none">
+      <Conversations
+        menu={menuConfig}
+        items={items}
+        className="sider-conversations"
+        creation={{
+          onClick: newChatClick,
+        }}
+        activeKey={String(currentSessionId)}
+        onActiveChange={(v) => {
+          setCurrentSessionId(v);
+          if (pathname !== '/') {
+            router.push('/');
+          }
+        }}
+        styles={{
+          item: {
+            borderRadius: 50,
+            marginBottom: 5,
+            padding: '8px 15px',
+          },
+          creation: {
+            backgroundColor: 'var(--color-default)',
+            borderColor: 'var(--color-third)',
+            color: 'var(--color-font)',
+            marginBottom: 10,
+            marginTop: 5,
+          },
+        }}
+      />
+    </div>
   );
 }
 
