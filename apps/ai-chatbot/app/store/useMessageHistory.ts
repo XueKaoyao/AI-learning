@@ -1,3 +1,5 @@
+// 传统方案：使用 IndexedDB 存储消息历史
+
 import { UIMessage } from 'ai';
 import {
   withStore,
@@ -5,7 +7,7 @@ import {
   opts,
   getAllByIds,
 } from '@myworkspace/indexedDB';
-import { StoredMeta } from '../types/chatStatus';
+import { StoredMeta } from '../types/ChatStatusType';
 
 const DATA_VERSION = 1;
 

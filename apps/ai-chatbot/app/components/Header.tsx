@@ -1,30 +1,60 @@
 'use client';
 import { memo } from 'react';
-import { Button, Switch, Upload } from 'antd';
+import { Avatar, Button, Popover, Switch, Upload } from 'antd';
+import UserCard from './UserCard';
 import {
   ExportOutlined,
+  FileSearchOutlined,
   ImportOutlined,
   MoonOutlined,
   SunOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import { useThemeStore } from '../store/useThemeStore';
+import { useRouter } from 'next/navigation';
+import { useUserStore } from '../store/useUserStore';
 
 interface HeaderProps {
   onImport: (file: File) => void;
-  onExport: () => void;
+  onExport: () => void | Promise<void>;
 }
 
 function Header({ onImport, onExport }: HeaderProps) {
   const { theme, setTheme } = useThemeStore();
-
+  const router = useRouter();
+  const { user } = useUserStore();
   return (
     <header className="shrink-0 flex items-center border-b border-secondary px-4 py-5 bg-primary">
+      <Switch
+        checked={theme === 'dark'}
+        onChange={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+        checkedChildren={<MoonOutlined />}
+        unCheckedChildren={<SunOutlined />}
+      />
+      <Button
+        className="header-button"
+        icon={<FileSearchOutlined />}
+        styles={{
+          root: {
+            backgroundColor: 'var(--color-default)',
+            border: '1px solid var(--color-third)',
+            color: 'var(--color-font)',
+            marginLeft: '10px',
+          },
+        }}
+        onClick={() => {
+          router.push('/retrieval');
+        }}
+      >
+        知识库检索
+      </Button>
       <span className="font-semibold text-lg mx-auto text-[var(--color-font)]">
         AI Chatbot
       </span>
       <div className="flex justify-center items-center gap-5">
         <Upload accept=".json" beforeUpload={onImport} showUploadList={false}>
           <Button
+            className="header-button"
             icon={<ImportOutlined />}
             styles={{
               root: {
@@ -38,6 +68,7 @@ function Header({ onImport, onExport }: HeaderProps) {
           </Button>
         </Upload>
         <Button
+          className="header-button"
           icon={<ExportOutlined />}
           styles={{
             root: {
@@ -50,12 +81,46 @@ function Header({ onImport, onExport }: HeaderProps) {
         >
           导出会话
         </Button>
-        <Switch
-          checked={theme === 'dark'}
-          onChange={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-          checkedChildren={<MoonOutlined />}
-          unCheckedChildren={<SunOutlined />}
-        />
+        {user ? (
+          <Popover
+            content={<UserCard user={user} />}
+            trigger="hover"
+            placement="bottomRight"
+            arrow={false}
+            styles={{
+              container: {
+                backgroundColor: 'var(--color-primary)',
+                border: '1px solid var(--color-third)',
+              },
+            }}
+          >
+            <Avatar
+              size="middle"
+              icon={<UserOutlined />}
+              style={{
+                backgroundColor: 'var(--color-default)',
+                border: '1px solid var(--color-third)',
+                color: 'var(--color-font)',
+              }}
+            />
+          </Popover>
+        ) : (
+          <Button
+            className="header-button"
+            onClick={() => {
+              router.push('/login');
+            }}
+            styles={{
+              root: {
+                backgroundColor: 'var(--color-default)',
+                border: '1px solid var(--color-third)',
+                color: 'var(--color-font)',
+              },
+            }}
+          >
+            登录/注册
+          </Button>
+        )}
       </div>
     </header>
   );

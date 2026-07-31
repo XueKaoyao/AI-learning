@@ -1,6 +1,6 @@
 import { withStore, withStoreResult, opts } from '@myworkspace/indexedDB';
-import { SystemPromptOption } from '../types/systemPromptType';
-import { StoredMeta } from '../types/chatStatus';
+import { SystemPromptOption } from '../types/SystemPromptType';
+import { StoredMeta } from '../types/ChatStatusType';
 
 const DATA_VERSION = 1;
 

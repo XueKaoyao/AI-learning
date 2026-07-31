@@ -2,6 +2,7 @@ import { JSX } from 'react';
 import './globals.css';
 import '@ant-design/x-markdown/themes/light.css';
 import '@ant-design/x-markdown/themes/dark.css';
+import AppShell from './components/AppShell';
 
 export default function RootLayout({
   children,
@@ -14,7 +15,9 @@ export default function RootLayout({
       suppressHydrationWarning
       className="h-full overflow-hidden"
     >
-      <body className="h-full">{children}</body>
+      <body className="h-full">
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }

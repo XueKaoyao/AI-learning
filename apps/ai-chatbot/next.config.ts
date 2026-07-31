@@ -140,6 +140,12 @@ const nextConfig: NextConfig = {
       fullUrl: true,
     },
   },
+
+  serverExternalPackages: [
+    '@xenova/transformers',
+    '@lancedb/lancedb',
+    'apache-arrow',
+  ],
 };
 
 export default nextConfig;

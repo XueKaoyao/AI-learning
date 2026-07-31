@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { SystemPromptOption } from '../types/systemPromptType';
+import { SystemPromptOption } from '../types/SystemPromptType';
 
 interface SystemOptionState {
   defaultOption: SystemPromptOption;

@@ -2,8 +2,8 @@ import type { Config } from 'jest';
 
 const config: Config = {
   projects: [
-    '<rootDir>/packages/jest.config.ts',
-    '<rootDir>/apps/ai-chatbot/jest.config.ts',
+    '<rootDir>/packages/jest.config.cjs',
+    '<rootDir>/apps/ai-chatbot/jest.config.cjs',
   ],
 
   // Shared coverage configuration

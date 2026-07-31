@@ -1,9 +1,7 @@
-import type { Config } from 'jest';
-import path from 'path';
-
-const config: Config = {
+/** @type {import('jest').Config} */
+const config = {
   displayName: 'ai-chatbot',
-  rootDir: path.resolve(__dirname),
+  rootDir: __dirname,
 
   // jsdom is required because components use browser APIs (window, document,
   // localStorage, IndexedDB, matchMedia, etc.)
@@ -26,7 +24,7 @@ const config: Config = {
 
   // Transform workspace packages (symlinked in node_modules) and Ant Design
   transformIgnorePatterns: [
-    'node_modules/(?!@myworkspace/|@ant-design/|antd/)',
+    'node_modules/(?!@myworkspace/|@ant-design/|antd/|ai/|@ai-sdk/|zod/)',
   ],
 
   // Path and asset mapping — order matters (more specific first)
@@ -54,4 +52,4 @@ const config: Config = {
   clearMocks: true,
 };
 
-export default config;
+module.exports = config;

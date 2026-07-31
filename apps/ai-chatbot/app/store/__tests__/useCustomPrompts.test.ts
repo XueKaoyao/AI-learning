@@ -5,7 +5,7 @@ import {
   updateCustomPrompt,
   deleteCustomPrompt,
 } from '../useCustomPrompts';
-import { SystemPromptOption } from '../../types/systemPromptType';
+import { SystemPromptOption } from '../../types/SystemPromptType';
 
 function createPrompt(
   id: string,
