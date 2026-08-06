@@ -145,6 +145,9 @@ const nextConfig: NextConfig = {
     '@xenova/transformers',
     '@lancedb/lancedb',
     'apache-arrow',
+    // pdf-parse / pdfjs：避免被打进 bundle 后找不到 pdf.worker.mjs
+    'pdf-parse',
+    'pdfjs-dist',
   ],
 };
 

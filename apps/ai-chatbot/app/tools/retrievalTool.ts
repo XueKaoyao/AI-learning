@@ -5,7 +5,9 @@ import { searchSnippets, type SearchHit } from '@/app/lib/chunks';
 export type RetrievalToolResult = {
   count: number;
   titles: string[];
-  results: Array<Pick<SearchHit, 'title' | 'snippet' | 'score'>>;
+  results: Array<
+    Pick<SearchHit, 'title' | 'filename' | 'page' | 'snippet' | 'score'>
+  >;
 };
 
 const DEFAULT_K = 3;
@@ -21,13 +23,15 @@ export const getInformation = tool({
     question: z.string().describe('用户的问题或检索关键词'),
   }),
   execute: async ({ question }): Promise<RetrievalToolResult> => {
-    const hits = await searchSnippets(question, DEFAULT_K);
+    const { hits } = await searchSnippets(question, DEFAULT_K);
     const titles = [...new Set(hits.map((h) => h.title))];
     return {
       count: hits.length,
       titles,
       results: hits.map((h) => ({
         title: h.title,
+        filename: h.filename,
+        page: h.page,
         snippet: h.snippet,
         score: h.score,
       })),

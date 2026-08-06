@@ -33,6 +33,8 @@ function hit(
   return {
     id: 'doc#0',
     documentId: 'doc',
+    filename: '',
+    page: 0,
     score: 0.9,
     index: 0,
     ...overrides,
@@ -45,7 +47,13 @@ type ExecuteFn = (
 ) => Promise<{
   count: number;
   titles: string[];
-  results: Array<{ title: string; snippet: string; score: number }>;
+  results: Array<{
+    title: string;
+    filename: string;
+    page: number;
+    snippet: string;
+    score: number;
+  }>;
 }>;
 
 const execute = getInformation.execute as ExecuteFn;
@@ -61,7 +69,10 @@ describe('retrievalTool', () => {
   });
 
   it('calls searchSnippets with question and k=3', async () => {
-    mockSearchSnippets.mockResolvedValueOnce([]);
+    mockSearchSnippets.mockResolvedValueOnce({
+      hits: [],
+      timings: { openTableMs: 0, searchMs: 0, mapMs: 0 },
+    });
 
     await execute(
       { question: '什么是向量检索' },
@@ -73,32 +84,41 @@ describe('retrievalTool', () => {
   });
 
   it('maps hits to count, unique titles, and results', async () => {
-    mockSearchSnippets.mockResolvedValueOnce([
-      hit({
-        id: 'a#0',
-        documentId: 'a',
-        title: 'RAG 简介',
-        snippet: 'RAG 是检索增强生成',
-        score: 0.95,
-        index: 0,
-      }),
-      hit({
-        id: 'a#1',
-        documentId: 'a',
-        title: 'RAG 简介',
-        snippet: '常用于知识库问答',
-        score: 0.88,
-        index: 1,
-      }),
-      hit({
-        id: 'b#0',
-        documentId: 'b',
-        title: '向量检索',
-        snippet: '用 embedding 找相似片段',
-        score: 0.8,
-        index: 0,
-      }),
-    ]);
+    mockSearchSnippets.mockResolvedValueOnce({
+      hits: [
+        hit({
+          id: 'a#0',
+          documentId: 'a',
+          title: 'RAG 简介',
+          filename: 'rag.md',
+          page: 0,
+          snippet: 'RAG 是检索增强生成',
+          score: 0.95,
+          index: 0,
+        }),
+        hit({
+          id: 'a#1',
+          documentId: 'a',
+          title: 'RAG 简介',
+          filename: 'rag.md',
+          page: 0,
+          snippet: '常用于知识库问答',
+          score: 0.88,
+          index: 1,
+        }),
+        hit({
+          id: 'b#0',
+          documentId: 'b',
+          title: '向量检索',
+          filename: 'handbook.pdf',
+          page: 2,
+          snippet: '用 embedding 找相似片段',
+          score: 0.8,
+          index: 0,
+        }),
+      ],
+      timings: { openTableMs: 1, searchMs: 2, mapMs: 0.1 },
+    });
 
     const result = await execute(
       { question: 'RAG' },
@@ -111,16 +131,22 @@ describe('retrievalTool', () => {
       results: [
         {
           title: 'RAG 简介',
+          filename: 'rag.md',
+          page: 0,
           snippet: 'RAG 是检索增强生成',
           score: 0.95,
         },
         {
           title: 'RAG 简介',
+          filename: 'rag.md',
+          page: 0,
           snippet: '常用于知识库问答',
           score: 0.88,
         },
         {
           title: '向量检索',
+          filename: 'handbook.pdf',
+          page: 2,
           snippet: '用 embedding 找相似片段',
           score: 0.8,
         },
@@ -129,7 +155,10 @@ describe('retrievalTool', () => {
   });
 
   it('returns empty payload when knowledge base has no hits', async () => {
-    mockSearchSnippets.mockResolvedValueOnce([]);
+    mockSearchSnippets.mockResolvedValueOnce({
+      hits: [],
+      timings: { openTableMs: 0, searchMs: 0, mapMs: 0 },
+    });
 
     const result = await execute(
       { question: '不存在的主题' },
